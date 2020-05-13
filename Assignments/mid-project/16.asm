@@ -10,50 +10,49 @@ Message2:	.ascii	"Number of different characters is: "
 main:
 get_string:
 	li	$v0, 54			#Input Dialog String
-	la	$a0, Message1		#$a0 = address of the null-terminated message string
-	la	$a1, str			#$a1 = address of input buffer
+	la	$a0, Message1		#$a0 = address of Message1
+	la	$a1, str		#$a1 = address of input buffer
 	la	$a2, 50			#$a2 = maximun of number characters to read	
 	syscall
 	
-	la	$a0, str			#$a0 = address str[0]
+	la	$a0, str		#$a0 = address str[0]
 	add	$t0, $zero, $zero	#$t0 = count = 0
 	add	$t1, $zero, $zero	#$t1 = i = 0
+	addi	$s1, $zero, 10		#Ascii code of Enter (end of string)
 	
 	jal 	countCharacter		#jump and link to countCharacter procedure
-		
-print_result:
-	li	$v0, 56
-	la	$a0, Message2
-	add	$a1, $zero, $t0
-	syscall	 	
+	nop		 
 endmain:
 
 #------------------------------------------------------------------------------------
-#Procedure get_string: get input string
-#------------------------------------------------------------------------------------
-
-	
-#------------------------------------------------------------------------------------
-#Procedure countCharacter: check character and accsend accsend the counter
+#Procedure countCharacter: check character and accsend accsend the counter and print 
+#                          the number of different character in a string.
 #------------------------------------------------------------------------------------
 countCharacter:
 	add	$t2, $a0, $t1		#$t2 = $a0 + $t1 = address of str[i]
 	lb	$t3, 0($t2)		#$t3 = str[i]
-	beq	$t3, $zero, done		#is null char ?
-	nop
-	#if str[i] != NULL
+	beq	$t3, $s1, print_result	#is 'enter' char ?
+
+					#if str[i] != NULL
 	jal 	check_diff
 	nop
-
+	
 	bne	$s0, $zero, next_char	#s0 = 0 ? t0 = t0 + 1 : next_char
 	addi	$t0, $t0, 1		#t0 = t0 + 1 -> count = count + 1	
 	addi	$t1, $t1, 1		#$t1 = $t1 + 1 -> i = i + 1
+	j	countCharacter
 next_char:
 	addi	$t1, $t1, 1		#$t1 = $t1 + 1 -> i = i + 1
 	j	countCharacter
-done:
-	jr	$ra
-end_of_count:		
+print_result:
+	li	$v0, 56
+	la	$a0, Message2
+	add	$a1, $zero, $t0
+	syscall	
+	li 	$v0, 10
+	syscall	
+end_count:		
+
 #------------------------------------------------------------------------------------
 #Procedure check_diff: check character is counted or not
 #------------------------------------------------------------------------------------
@@ -73,3 +72,4 @@ continue_for:
 	j	for
 end_of_for:
 	jr	$ra
+end_check:
