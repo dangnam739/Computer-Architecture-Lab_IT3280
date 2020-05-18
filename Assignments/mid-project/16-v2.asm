@@ -1,34 +1,60 @@
 #Mid-Exam, Problem 16
 #Author: Kieu Dang Nam_20176830
 
-.data
+.data	
+Message1:	.ascii	"Enter a string which consists of lower alphabetic characters (a-z): "
 str:		.space	50		
-Message1:	.ascii	"Enter a string which consists of lower alphabetic characters (a-z): "	
 Message2:	.ascii	"Number of different character is: "
 
 
 .text
 main:
-	jal	get_string		#jump and link to get_string procedure
-		
-	la	$a0, str			#$a0 = address str[0]
 	add	$t0, $zero, $zero	#$t0 = count = 0
 	add	$t1, $zero, $zero	#$t1 = i = 0
 	addi	$s1, $zero, 10		#Ascii code of Enter (end of string)
 	
-	jal 	countCharacter		#jump and link to countCharacter procedure
-endmain:
-
-#------------------------------------------------------------------------------------
-#Procedure get_string: a dialog to enter a input string
-#------------------------------------------------------------------------------------
+#Input and check input string
 get_string:
+input:
 	li	$v0, 54			#Input Dialog String
 	la	$a0, Message1		#$a0 = address of Message1
 	la	$a1, str			#$a1 = address of input buffer
 	la	$a2, 50			#$a2 = maximun of number characters to read	
-	syscall
-	jr	$ra
+	syscall	
+	
+	la	$a0, str			#$a0 = address str[0]	
+check_input:
+	addi	$s2, $zero, 97		#ascii for 'a'
+	addi	$s3, $zero, 122		#ascii for 'z'
+	add	$s0, $zero, $zero	#check error input or not ?
+	add	$t4, $zero, $zero	#$t4 = j = 0
+input_for:		
+	add	$t2, $a0, $t4		#$t2 = $a0 + $t1 = address of str[j]
+	lb	$t3, 0($t2)		#$t3 = str[i]
+	beq	$t3, $s1, end_check_input 	#is 'enter' char ?
+	slt	$s4, $t3, $s2		#str[j] < 'a' ?
+	bgtz	$s4, set_s0		 
+	
+	slt	$s4, $s3, $t3		#str[j] > 122
+	bgtz	$s4, set_s0 
+	
+	addi	$t4, $t4, 1
+	j	input_for	
+set_s0:
+	addi	$s0, $zero, 1
+	j	end_check_input
+end_check_input:	
+	
+	beq	$s0, $zero, end_get_string
+	j	input
+end_get_string:
+#end input and check input string		
+	la	$a0, str			#$a0 = address str[0]	
+	
+	jal 	countCharacter		#jump and link to countCharacter procedure
+endmain:
+
+
 #------------------------------------------------------------------------------------
 #Procedure countCharacter: check character and accsend accsend the counter and print 
 #                          the number of different character in a string.
