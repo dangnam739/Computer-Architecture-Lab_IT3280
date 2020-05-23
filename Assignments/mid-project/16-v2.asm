@@ -6,7 +6,6 @@ Message1:	.ascii	"Enter a string which consists of lower alphabetic characters (
 str:		.space	50		
 Message2:	.ascii	"Number of different character is: "
 
-
 .text
 main:
 	add	$t0, $zero, $zero	#$t0 = count = 0
@@ -16,6 +15,7 @@ main:
 #Input and check input string
 get_string:
 input:
+	add	$a0, $zero, $zero
 	li	$v0, 54			#Input Dialog String
 	la	$a0, Message1		#$a0 = address of Message1
 	la	$a1, str			#$a1 = address of input buffer
