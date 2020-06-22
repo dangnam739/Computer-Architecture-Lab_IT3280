@@ -30,8 +30,7 @@
 				# 180: South (down)
 				# 270: West (left)
 .eqv MOVING 	0xffff8050 	# Boolean: whether or not to move
-.eqv LEAVETRACK 	0xffff8020 	# Boolean (0 or non-0):
- 				# whether or not to leave a track
+.eqv LEAVETRACK 	0xffff8020 	# Boolean (0 or non-0) whether or not to leave a track
 .eqv WHEREX 	0xffff8030 	# Integer: Current x-location of MarsBot
 .eqv WHEREY 	0xffff8040 	# Integer: Current y-location of MarsBot
 
@@ -45,21 +44,18 @@ GO_RIGHT_CODE: 		.asciiz 	"666"
 TRACK_CODE: 		.asciiz 	"dad"
 UNTRACK_CODE: 		.asciiz 	"cbc"
 GO_BACK_CODE: 		.asciiz 	"999"
-WRONG_CODE: 		.asciiz 	"Wrong control code!"
+WRONG_CODE: 		.asciiz 	"Invalid code control. Please enter again !"
 #-------------------------------------------------------------------------------
 inputControlCode: 	.space 	50
 lengthControlCode: 	.word 	0
 nowHeading: 		.word 	0
 #-------------------------------------------------------------------------------
-# duong di cua marsbot duoc luu tru vao mang path
-# moi 1 canh duoc luu tru duoi dang 1 structure {x, y, z}
+# Path: m?ng l?u ???ng ?i c?a bot d??i c?u trúc {x, y, z}
 # trong do: 	x, y la toa do diem dau tien cua canh
 #		z la huong cua canh do
-# do dai duong di ngay khi bat dau la 12 bytes (3x 4byte)
 #-------------------------------------------------------------------------------
 path: 		.space 	600
-lengthPath: 	.word 	12	#bytes
-
+lengthPath: 	.word 	12
 #===============================================================================
 .text
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,43 +82,43 @@ ReadKey:
 	beq 	$t6, 127 , continue	#if $t6 == delete key then remove input
 					#127 is delete key in ascii		
 	bne 	$t6, '\n' , loop		#if $t6 != '\n' then Polling
-	nop
+	nop 
 	bne 	$t6, '\n' , loop
-CheckControlCode:
+CheckInputControlCode:
 	la 	$s2, lengthControlCode
 	lw 	$s2, 0($s2)
 	#----------------
-	bne 	$s2, 3, pushErrorMess
+	bne 	$s2, 3, showExceptionMess	#Check length of Control Code
 		
 	la 	$s3, MOVE_CODE
-	jal 	isEqualString
+	jal 	checkCodeControl
 	beq 	$t0, 1, go
 	
 	la 	$s3, STOP_CODE
-	jal 	isEqualString
+	jal 	checkCodeControl
 	beq 	$t0, 1, stop
 		
 	la 	$s3, GO_LEFT_CODE
-	jal 	isEqualString
+	jal 	checkCodeControl
 	beq 	$t0, 1, goLeft
 	
 	la 	$s3, GO_RIGHT_CODE
-	jal 	isEqualString
+	jal 	checkCodeControl
 	beq 	$t0, 1, goRight
 	
 	la 	$s3, TRACK_CODE
-	jal 	isEqualString
+	jal 	checkCodeControl
 	beq 	$t0, 1, track
 	
 	la 	$s3, UNTRACK_CODE
-	jal 	isEqualString
+	jal 	checkCodeControl
 	beq 	$t0, 1, untrack
 		
 	la 	$s3, GO_BACK_CODE
-	jal 	isEqualString
+	jal 	checkCodeControl
 	beq 	$t0, 1, goBack
 		
-	beq 	$t0, 0, pushErrorMess			
+	beq 	$t0, 0, showExceptionMess			
 printControlCode:	
 	li 	$v0, 4
 	la 	$a0, inputControlCode
@@ -319,7 +315,7 @@ goRight:
 	la 	$s5, nowHeading
 	lw 	$s6, 0($s5)	#$s6 is heading at now
 	addi 	$s6, $s6, 90 	#increase heading by 90*
-	sw 	$s6, 0($s5) 	# update nowHeading
+	sw 	$s6, 0($s5) 	#update nowHeading
 	#restore
 	lw 	$s6, 0($sp)
 	addi 	$sp,$sp,-4
@@ -344,7 +340,7 @@ goLeft:
 	la 	$s5, nowHeading
 	lw 	$s6, 0($s5)	#$s6 is heading at now
 	addi 	$s6, $s6, -90 	#increase heading by 90*
-	sw 	$s6, 0($s5) 	# update nowHeading
+	sw 	$s6, 0($s5) 	#update nowHeading
 	#restore
 	lw 	$s6, 0($sp)
 	addi 	$sp,$sp,-4
@@ -406,13 +402,13 @@ removeControlCode:
 	nop
 	jr 	$ra
 #-----------------------------------------------------------
-# isEqualString procedure, to check inputControlCode string 
+# checkCodeControl procedure, to check inputControlCode string 
 #				is equal with string s (store in $s3 )
 #				Length of two string is the same
 # param[in] $s3, store address of a string
 # param[out] $t0, 1 if equal, 0 is not equal
 #-----------------------------------------------------------					
-isEqualString:
+checkCodeControl:
 	#backup
 	addi 	$sp,$sp,4
 	sw 	$t1, 0($sp)
@@ -470,10 +466,10 @@ isNotEqual:
 	nop
 	jr 	$ra
 #-----------------------------------------------------------
-# pushErrorMess procedure, to announce the inputed control code is wrong
+# showExceptionMess procedure, to announce the inputed control code is wrong
 # param[in] none
 #-----------------------------------------------------------					
-pushErrorMess:
+showExceptionMess:
 	li 	$v0, 4
 	la 	$a0, inputControlCode
 	syscall
@@ -570,20 +566,30 @@ UNTRACK:
 # ROTATE_RIGHT procedure, to control robot to rotate
 # param[in] nowHeading variable, store heading at present
 #-----------------------------------------------------------
-ROTATE: 
-	#backup
+ROTATE: 		
 	addi 	$sp,$sp,4
 	sw 	$t1,0($sp)
 	addi 	$sp,$sp,4
 	sw 	$t2,0($sp)
 	addi 	$sp,$sp,4
 	sw 	$t3,0($sp)
+	addi 	$sp,$sp,4
+	sw 	$ra,0($sp)	
 	#processing
+	la 	$t7,LEAVETRACK
+	lb 	$t8, 0($t7)
+	
 	li 	$t1, HEADING 	# change HEADING port
-	la 	$t2, nowHeading
+	la 	$t2, nowHeading	
 	lw 	$t3, 0($t2)	#$t3 is heading at now
  	sw 	$t3, 0($t1) 	# to rotate robot
- 	#restore
+ 	
+ 	beqz	$t8, restoreRotate
+	jal	UNTRACK
+	jal	TRACK	
+restoreRotate:
+	lw 	$ra, 0($sp)
+	addi 	$sp,$sp,-4
  	lw 	$t3, 0($sp)
 	addi 	$sp,$sp,-4
 	lw 	$t2, 0($sp)
