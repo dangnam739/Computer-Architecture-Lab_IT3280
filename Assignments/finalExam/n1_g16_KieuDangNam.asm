@@ -50,7 +50,7 @@ inputControlCode: 	.space 	50
 lengthControlCode: 	.word 	0
 nowHeading: 		.word 	0
 #-------------------------------------------------------------------------------
-# Path: m?ng l?u ???ng ?i c?a bot d??i c?u trúc {x, y, z}
+# Path: mang luu duong di marsbot theo cau truc {x, y, z}
 # trong do: 	x, y la toa do diem dau tien cua canh
 #		z la huong cua canh do
 #-------------------------------------------------------------------------------
@@ -174,7 +174,6 @@ storePath:
 	sw 	$s4, 8($t4)		#store heading
 	
 	addi 	$s3, $s3, 12		#update lengthPath
-					#12 = 3 (word) x 4 (bytes)
 	sw 	$s3, 0($t3)
 	
 	#restore
@@ -200,7 +199,7 @@ storePath:
 	jr 	$ra		
 #-----------------------------------------------------------
 # goBack procedure, control marsbot go back
-# param[in] 	path array, lengthPath array
+# param[in] : path array, lengthPath array
 #-----------------------------------------------------------		
 goBack:
 	#backup
@@ -222,8 +221,7 @@ goBack:
 	lw 	$s5, 0($s5)
 	add 	$s7, $s7, $s5
 begin:	
-	addi 	$s5, $s5, -12 		#lui lai 1 structure
-	
+	addi 	$s5, $s5, -12 		#lui lai 1 position	
 	addi 	$s7, $s7, -12		#vi tri cua thong tin ve canh cuoi cung
 	lw 	$s6, 8($s7)		#huong cua canh cuoi cung
 	addi 	$s6, $s6, 180		#nguoc lai huong cua canh cuoi cung
@@ -233,16 +231,16 @@ begin:
 	sw 	$s6, 0($t8)
 	jal 	ROTATE
 go_to_first_point_of_edge:	
-	lw 	$t9, 0($s7)		#toa do x cua diem dau tien cua canh
-	li 	$t8, WHEREX		#toa do x hien tai
+	lw 	$t9, 0($s7)		#x : first point
+	li 	$t8, WHEREX		#x : current point
 	lw 	$t8, 0($t8)
 
 	bne 	$t8, $t9, go_to_first_point_of_edge
 	nop
 	bne 	$t8, $t9, go_to_first_point_of_edge
 	
-	lw 	$t9, 4($s7)		#toa do y cua diem dau tien cua canh
-	li 	$t8, WHEREY		#toa do y hien tai
+	lw 	$t9, 4($s7)		#y : first point
+	li 	$t8, WHEREY		#y : current point
 	lw 	$t8, 0($t8)
 	
 	bne 	$t8, $t9, go_to_first_point_of_edge
